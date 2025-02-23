@@ -1,7 +1,11 @@
 #pragma once
 
+#include <stdint.h>
+
 enum AC_RemoteCustomEventType {
-    AC_RemoteCustomEventTypeButtonSelected,
+    AC_RemoteCustomEventTypeButtonPressed,
+    AC_RemoteCustomEventTypeButtonLongPressed,
+    AC_RemoteCustomEventTypeSendSettings,
     AC_RemoteCustomEventTypeSendCommand,
 };
 

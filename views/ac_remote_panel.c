@@ -36,6 +36,7 @@ LIST_DEF(IconList, IconElement, M_POD_OPLIST)
 typedef struct ButtonItem {
     uint16_t index;
     ButtonItemCallback callback;
+    ButtonItemCallback callback_long;
     IconElement icon;
     void* callback_context;
 } ButtonItem;
@@ -65,6 +66,7 @@ static void ac_remote_panel_process_down(ACRemotePanel* ac_remote_panel);
 static void ac_remote_panel_process_left(ACRemotePanel* ac_remote_panel);
 static void ac_remote_panel_process_right(ACRemotePanel* ac_remote_panel);
 static void ac_remote_panel_process_ok(ACRemotePanel* ac_remote_panel);
+static void ac_remote_panel_process_ok_long(ACRemotePanel* ac_remote_panel);
 static void ac_remote_panel_view_draw_callback(Canvas* canvas, void* _model);
 static bool ac_remote_panel_view_input_callback(InputEvent* event, void* context);
 
@@ -188,6 +190,7 @@ void ac_remote_panel_add_item(
     const Icon* icon_name,
     const Icon* icon_name_selected,
     ButtonItemCallback callback,
+    ButtonItemCallback callback_long,
     void* callback_context) {
     furi_assert(ac_remote_panel);
 
@@ -201,6 +204,7 @@ void ac_remote_panel_add_item(
             *item_ptr = malloc(sizeof(ButtonItem));
             ButtonItem* item = *item_ptr;
             item->callback = callback;
+            item->callback_long = callback_long;
             item->callback_context = callback_context;
             item->icon.x = x;
             item->icon.y = y;
@@ -376,6 +380,23 @@ void ac_remote_panel_process_ok(ACRemotePanel* ac_remote_panel) {
     }
 }
 
+void ac_remote_panel_process_ok_long(ACRemotePanel* ac_remote_panel) {
+    ButtonItem* button_item = NULL;
+
+    with_view_model(
+        ac_remote_panel->view,
+        ACRemotePanelModel * model,
+        {
+            button_item =
+                *ac_remote_panel_get_item(model, model->selected_item_x, model->selected_item_y);
+        },
+        true);
+
+    if(button_item && button_item->callback_long) {
+        button_item->callback_long(button_item->callback_context, button_item->index);
+    }
+}
+
 static bool ac_remote_panel_view_input_callback(InputEvent* event, void* context) {
     ACRemotePanel* ac_remote_panel = context;
     furi_assert(ac_remote_panel);
@@ -402,6 +423,17 @@ static bool ac_remote_panel_view_input_callback(InputEvent* event, void* context
         case InputKeyOk:
             consumed = true;
             ac_remote_panel_process_ok(ac_remote_panel);
+            break;
+        default:
+            break;
+        }
+    }
+
+    if(event->type == InputTypeLong) {
+        switch(event->key) {
+        case InputKeyOk:
+            consumed = true;
+            ac_remote_panel_process_ok_long(ac_remote_panel);
             break;
         default:
             break;
@@ -469,7 +501,7 @@ void ac_remote_panel_item_set_icons(
                 for(size_t y = 0; y < model->reserve_y; ++y) {
                     ButtonItem** button_item = ac_remote_panel_get_item(model, x, y);
                     ButtonItem* item = *button_item;
-                    if(item->index == index) {
+                    if(item && item->index == index) {
                         item->icon.name = icon_name;
                         item->icon.name_selected = icon_name_selected;
                     }

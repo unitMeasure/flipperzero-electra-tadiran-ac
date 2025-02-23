@@ -41,6 +41,7 @@ void ac_remote_panel_add_item(
     const Icon* icon_name,
     const Icon* icon_name_selected,
     ButtonItemCallback callback,
+    ButtonItemCallback callback_long,
     void* callback_context);
 
 void ac_remote_panel_item_set_icons(
