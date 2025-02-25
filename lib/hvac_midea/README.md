@@ -85,7 +85,7 @@ _Type_ may be:
 * Command `0xA` - not tracked by remote, just toggle something on AC unit, has slightly different packet stucture
 
 _Fan power_ has following values:
-|Value|Octal|Hex|
+|Value|Binary|Hex|
 |---|---|---|
 |Lockout|000|0x0|
 |1|001|0x1|
@@ -99,7 +99,7 @@ _Lockout_ value used in `Auto` and `Dry` modes.
 _Ignore_ value used to power off unit or toggle swing
 
 _Mode_ has following values:
-|Value|Octal|Hex|
+|Value|Binary|Hex|
 |---|---|---|
 |Cold|00|0x0|
 |Dry/Fan|10|0x2|
@@ -109,7 +109,7 @@ _Mode_ has following values:
 _Dry_ and _Fan_ modes are differentiated by _Fan power_: for _Dry_ it will be _Lockout_ (`0x0`) value. _Auto_ mode also must have _Lockout_ fan power.
 
 _Temperature_ is encoded as an addition to minimal temperature (17 degrees Celsius) using cusom Gray code.
-|Value|Octal|Hex|
+|Value|Binary|Hex|
 |---|---|---|
 |17|0000|0x0|
 |18|1000|0x8|
@@ -171,7 +171,7 @@ Let's overview a __command__ packet:
 For _Settings_ packet _Type_ will be `0xA`. _Command magic 1_ is always `0xAF`. _Command magic 2_ is always `0x5`.
 
 _Command_ has following values:
-|Value|Octal|Hex|
+|Value|Binary|Hex|
 |---|---|---|
 |Silent|01101|0xD|
 |Swing long|00110|0x6|
