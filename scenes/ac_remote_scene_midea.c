@@ -22,6 +22,10 @@ typedef enum {
     command_clean,
 } command_id;
 
+const Icon* power[2][2] = {
+    [0] = {&I_on_19x20, &I_on_hover_19x20},
+    [1] = {&I_off_19x20, &I_off_hover_19x20},
+};
 const Icon* mode[5][2] = {
     [HvacMideaModeCold] = {&I_cold_19x20, &I_cold_hover_19x20},
     [HvacMideaModeDry] = {&I_dry_19x20, &I_dry_hover_19x20},
@@ -137,12 +141,12 @@ void ac_remote_scene_midea_on_enter(void* context) {
         0,
         6,
         17,
-        &I_off_19x20,
-        &I_off_hover_19x20,
+        power[ac_remote->app_state.power][0],
+        power[ac_remote->app_state.power][1],
         ac_remote_scene_universal_common_item_callback,
         NULL,
         context);
-    ac_remote_panel_add_icon(ac_remote_panel, 10, 39, &I_off_text_11x5);
+    ac_remote_panel_add_icon(ac_remote_panel, 5, 39, &I_power_text_21x5);
     ac_remote_panel_add_item(
         ac_remote_panel,
         button_mode,
@@ -371,6 +375,11 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
     switch(event_value) {
     case button_power:
         ac_remote->app_state.power = ac_remote->app_state.power ? 0 : 1;
+        ac_remote_panel_item_set_icons(
+            ac_remote_panel,
+            button_power,
+            power[ac_remote->app_state.power][0],
+            power[ac_remote->app_state.power][1]);
         break;
     case button_mode:
         ac_remote->app_state.mode++;
@@ -482,6 +491,14 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
         if(!ac_remote->app_state.power) {
             return true;
         }
+
+        // mimic original behaviour when remote tracks power off
+        ac_remote->app_state.power = 0;
+        ac_remote_panel_item_set_icons(
+            ac_remote_panel,
+            button_power,
+            power[ac_remote->app_state.power][0],
+            power[ac_remote->app_state.power][1]);
 
         view_dispatcher_send_custom_event(
             ac_remote->view_dispatcher,
