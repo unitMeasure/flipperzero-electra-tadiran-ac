@@ -11,9 +11,12 @@ Protocol description [here](./lib/hvac_midea/README.md).
 
 ![Screenshot](img/screenshot.png)
 
+![Screenshot silent mode](img/screenshot_silent_mode.png)
+
 Black top-right corner of the button indicates long-press availability. Actions:
 * "Swing" button: sends command to toggle vertical swing instead of horizontal one (if supported)
 * "LED" button: sends command to change between desired and ambient temperature indication (if supported)
+* "Fan" button: toggle silent mode if supported, reset on power off, if mode or fan power changed or if "Turbo"/"Clean" pressed.
 
 ## Building
 ```shell
@@ -30,5 +33,7 @@ ufbt launch
 
 ## TODO
 - [ ] Publish to Flipper App Catalog
-- [ ] Support Silent mode
+- [x] Support Silent mode
+- [ ] Support Night mode
 - [ ] Support timers setting
+- [ ] Support external IR emitter (?)

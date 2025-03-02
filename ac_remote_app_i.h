@@ -23,6 +23,7 @@ typedef struct {
     uint32_t mode;
     uint32_t temperature;
     uint32_t fan;
+    uint32_t silent_mode; // not stored in file, only in-memory
 } ACRemoteAppSettings;
 
 struct AC_RemoteApp {

@@ -168,7 +168,7 @@ Let's overview a __command__ packet:
 </tbody>
 </table>
 
-For _Settings_ packet _Type_ will be `0xA`. _Command magic 1_ is always `0xAF`. _Command magic 2_ is always `0x5`.
+For _Command_ packet _Type_ will be `0xA`. _Command magic 1_ is always `0xAF`. _Command magic 2_ is always `0x5`.
 
 _Command_ has following values:
 |Value|Binary|Hex|

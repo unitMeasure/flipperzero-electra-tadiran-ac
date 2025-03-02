@@ -20,6 +20,7 @@ typedef enum {
     command_led,
     command_led_change_info,
     command_clean,
+    command_silent,
 } command_id;
 
 const Icon* power[2][2] = {
@@ -36,7 +37,7 @@ const Icon* fan[4][2] = {
     [HvacMideaFanPower1] = {&I_fan_speed_1_19x20, &I_fan_speed_1_hover_19x20},
     [HvacMideaFanPower2] = {&I_fan_speed_2_19x20, &I_fan_speed_2_hover_19x20},
     [HvacMideaFanPower3] = {&I_fan_speed_3_19x20, &I_fan_speed_3_hover_19x20},
-    [HvacMideaFanPowerAuto] = {&I_auto_19x20, &I_auto_hover_19x20}};
+    [HvacMideaFanPowerAuto] = {&I_fan_speed_auto_19x20, &I_fan_speed_auto_hover_19x20}};
 
 char buffer[4] = {0};
 
@@ -129,6 +130,7 @@ void ac_remote_scene_midea_on_enter(void* context) {
         ac_remote->app_state.mode = HvacMideaModeCold;
         ac_remote->app_state.fan = HvacMideaFanPowerAuto;
         ac_remote->app_state.temperature = HVAC_MIDEA_TEMPERATURE_DEFAULT;
+        ac_remote->app_state.silent_mode = 0;
     }
 
     view_stack_add_view(ac_remote->view_stack, ac_remote_panel_get_view(ac_remote_panel));
@@ -195,7 +197,7 @@ void ac_remote_scene_midea_on_enter(void* context) {
         fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][0],
         fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][1],
         ac_remote_scene_universal_common_item_callback,
-        NULL, // TODO: silent mode implementation
+        ac_remote_scene_universal_common_item_callback_long,
         context);
     ac_remote_panel_add_icon(ac_remote_panel, 43, 72, &I_fan_text_12x5);
     ac_remote_panel_add_item(
@@ -213,7 +215,7 @@ void ac_remote_scene_midea_on_enter(void* context) {
     ac_remote_panel_add_icon(ac_remote_panel, 38, 105, &I_swing_text_20x5);
     ac_remote_panel_add_item(
         ac_remote_panel,
-        button_led,
+        button_turbo,
         0,
         3,
         1,
@@ -303,6 +305,9 @@ void ac_remote_send_command(const ACRemoteAppSettings* settings, command_id comm
     case command_clean:
         hvac_midea_set_command(command_packet, HvacMideaCommandClean);
         break;
+    case command_silent:
+        hvac_midea_set_command(command_packet, HvacMideaCommandSilent);
+        break;
     default:
         furi_assert(false);
         break;
@@ -365,6 +370,37 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
                 ac_remote_custom_event_pack(
                     AC_RemoteCustomEventTypeSendCommand, command_led_change_info));
             break;
+        case button_fan:
+            // ignore when power off
+            if(!ac_remote->app_state.power) {
+                break;
+            }
+
+            // toggle silent mode
+            ac_remote->app_state.silent_mode = ac_remote->app_state.silent_mode ? 0 : 1;
+            if(ac_remote->app_state.silent_mode) {
+                ac_remote_panel_item_set_icons(
+                    ac_remote_panel, button_fan, &I_fan_silent_19x20, &I_fan_silent_hover_19x20);
+
+                view_dispatcher_send_custom_event(
+                    ac_remote->view_dispatcher,
+                    ac_remote_custom_event_pack(
+                        AC_RemoteCustomEventTypeSendCommand, command_silent));
+
+                break;
+            }
+
+            // if silent mode turned off, resend settings again
+            ac_remote_panel_item_set_icons(
+                ac_remote_panel,
+                button_fan,
+                fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][0],
+                fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][1]);
+
+            view_dispatcher_send_custom_event(
+                ac_remote->view_dispatcher,
+                ac_remote_custom_event_pack(AC_RemoteCustomEventTypeSendSettings, 0));
+            break;
         default:
             break;
         }
@@ -380,12 +416,20 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
             button_power,
             power[ac_remote->app_state.power][0],
             power[ac_remote->app_state.power][1]);
+        // reset possible "silent"
+        ac_remote->app_state.silent_mode = 0;
+        ac_remote_panel_item_set_icons(
+            ac_remote_panel,
+            button_fan,
+            fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][0],
+            fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][1]);
         break;
     case button_mode:
         ac_remote->app_state.mode++;
         if(ac_remote->app_state.mode > HvacMideaModeAuto) {
             ac_remote->app_state.mode = HvacMideaModeCold;
         }
+        ac_remote->app_state.silent_mode = 0;
         ac_remote_panel_item_set_icons(
             ac_remote_panel,
             button_mode,
@@ -419,6 +463,8 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
         if(ac_remote->app_state.fan > HvacMideaFanPowerAuto) {
             ac_remote->app_state.fan = HvacMideaModeCold;
         }
+
+        ac_remote->app_state.silent_mode = 0; // force reset silent mode
         ac_remote_panel_item_set_icons(
             ac_remote_panel,
             button_fan,
@@ -475,6 +521,25 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
             ac_remote_custom_event_pack(AC_RemoteCustomEventTypeSendCommand, command_swing));
 
         return true;
+    case button_turbo:
+        // ignore when power off
+        if(!ac_remote->app_state.power) {
+            return true;
+        }
+
+        // reset possible "silent"
+        ac_remote->app_state.silent_mode = 0;
+        ac_remote_panel_item_set_icons(
+            ac_remote_panel,
+            button_fan,
+            fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][0],
+            fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][1]);
+
+        view_dispatcher_send_custom_event(
+            ac_remote->view_dispatcher,
+            ac_remote_custom_event_pack(AC_RemoteCustomEventTypeSendCommand, command_turbo));
+
+        return true;
     case button_led:
         // ignore when power off
         if(!ac_remote->app_state.power) {
@@ -491,6 +556,14 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
         if(!ac_remote->app_state.power) {
             return true;
         }
+
+        // reset possible "silent"
+        ac_remote->app_state.silent_mode = 0;
+        ac_remote_panel_item_set_icons(
+            ac_remote_panel,
+            button_fan,
+            fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][0],
+            fan[ac_remote_displayed_fan_power(&ac_remote->app_state)][1]);
 
         // mimic original behaviour when remote tracks power off
         ac_remote->app_state.power = 0;
