@@ -58,6 +58,7 @@ bool ac_remote_load_settings(ACRemoteAppSettings* app_state) {
         if(app_state->temperature > HVAC_MIDEA_TEMPERATURE_MAX) break;
         if(!flipper_format_read_uint32(ff, "Fan", &app_state->fan, 1)) break;
         if(app_state->fan > HvacMideaFanPowerAuto) break;
+        if(!flipper_format_read_uint32(ff, "Power", &app_state->power, 1)) break;
         success = true;
     } while(false);
     furi_record_close(RECORD_STORAGE);
@@ -78,7 +79,7 @@ bool ac_remote_store_settings(ACRemoteAppSettings* app_state) {
         if(!flipper_format_write_uint32(ff, "Mode", &app_state->mode, 1)) break;
         if(!flipper_format_write_uint32(ff, "Temperature", &app_state->temperature, 1)) break;
         if(!flipper_format_write_uint32(ff, "Fan", &app_state->fan, 1)) break;
-        success = true;
+        if(!flipper_format_write_uint32(ff, "Power", &app_state->power, 1)) success = true;
     } while(false);
     furi_record_close(RECORD_STORAGE);
     flipper_format_free(ff);
