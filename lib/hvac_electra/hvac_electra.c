@@ -8,15 +8,15 @@ HvacElectraPacket hvac_electra_create_packet(HvacElectraPacketType packet_type) 
         packet = (HvacElectraPacket)malloc(sizeof(uint8_t) * HVAC_ELECTRA_PACKET_SIZE);
         furi_assert(packet);
 
-        packet[0] = HVAC_ELECTRA_PACKET_SETTINGS << 4 | HVAC_ELECTRA_PACKET_START_MAGIC;
-        packet[1] = ~(HVAC_ELECTRA_PACKET_SETTINGS << 4 | HVAC_ELECTRA_PACKET_START_MAGIC);
-        packet[2] = 0xFF;
-        packet[3] = 0x0;
-        packet[4] = 0x0;
-        packet[5] = 0xFF;
-
-        hvac_electra_set_mode(packet, HvacElectraModeCold);
-        hvac_electra_set_temperature(packet, HVAC_ELECTRA_TEMPERATURE_DEFAULT);
+        packet[0] = 0x19;
+        packet[1] = 0x09;
+        packet[2] = 0x60;
+        packet[3] = 0x50;
+        packet[4] = 2;
+        packet[5] = 0;
+        packet[6] = 0;
+        packet[7] = 0x80; // Will be updated
+        packet[8] = 6;    // Will be updated
 
         return packet;
     case HvacElectraPacketCommand:

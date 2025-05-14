@@ -6,7 +6,7 @@
 #include "furi_hal.h"
 
 #define HVAC_ELECTRA_PACKET_START_MAGIC (uint8_t)0xD
-#define HVAC_ELECTRA_PACKET_SIZE        6
+#define HVAC_ELECTRA_PACKET_SIZE        9
 typedef uint8_t* HvacElectraPacket;
 
 #define HVAC_ELECTRA_PACKET_SETTINGS (uint8_t)0x4

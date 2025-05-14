@@ -10,6 +10,7 @@ And some snippets from
 
 https://github.com/arikfe/IRTadiran/ (Sakal)
 
+https://github.com/barakwei/IRelectra
 
 ## Midea AC Remote
 
