@@ -1,4 +1,17 @@
-# Midea AC Remote
+# FORKED VERSION TO WORK WITH SOME TADIRAN + ELECTRA AC UNITS
+
+WIP 
+
+# ORIGINAL VERSION: 
+
+https://github.com/xakep666/flipperzero-midea-ac-remote
+
+And some snippets from 
+
+https://github.com/arikfe/IRTadiran/ (Sakal)
+
+
+## Midea AC Remote
 
 Midea Electric AC remote control for Flipper Zero.
 
@@ -18,7 +31,7 @@ Black top-right corner of the button indicates long-press availability. Actions:
 * "LED" button: sends command to change between desired and ambient temperature indication (if supported)
 * "Fan" button: toggle silent mode if supported, reset on power off, if mode or fan power changed or if "Turbo"/"Clean" pressed.
 
-## Building
+### Building
 ```shell
 # Clone repository
 git clone https://github.com/xakep666/flipperzero-midea-ac-remote.git

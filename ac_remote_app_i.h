@@ -8,13 +8,13 @@
 #include <storage/storage.h>
 #include <flipper_format/flipper_format.h>
 #include <notification/notification_messages.h>
-#include <hvac_midea.h>
+#include <hvac_electra.h>
 
 #include "ac_remote_app.h"
 #include "scenes/ac_remote_scene.h"
 #include "ac_remote_custom_event.h"
 #include "views/ac_remote_panel.h"
-#include "midea_ac_remote_icons.h"
+#include "electra_ac_remote_icons.h"
 
 #define AC_REMOTE_APP_SETTINGS APP_DATA_PATH("settings.txt")
 

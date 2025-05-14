@@ -28,16 +28,16 @@ const Icon* power[2][2] = {
     [1] = {&I_off_19x20, &I_off_hover_19x20},
 };
 const Icon* mode[5][2] = {
-    [HvacMideaModeCold] = {&I_cold_19x20, &I_cold_hover_19x20},
-    [HvacMideaModeDry] = {&I_dry_19x20, &I_dry_hover_19x20},
-    [HvacMideaModeFan] = {&I_fan_19x20, &I_fan_hover_19x20},
-    [HvacMideaModeHeat] = {&I_heat_19x20, &I_heat_hover_19x20},
-    [HvacMideaModeAuto] = {&I_auto_19x20, &I_auto_hover_19x20}};
+    [HvacElectraModeCold] = {&I_cold_19x20, &I_cold_hover_19x20},
+    [HvacElectraModeDry] = {&I_dry_19x20, &I_dry_hover_19x20},
+    [HvacElectraModeFan] = {&I_fan_19x20, &I_fan_hover_19x20},
+    [HvacElectraModeHeat] = {&I_heat_19x20, &I_heat_hover_19x20},
+    [HvacElectraModeAuto] = {&I_auto_19x20, &I_auto_hover_19x20}};
 const Icon* fan[4][2] = {
-    [HvacMideaFanPower1] = {&I_fan_speed_1_19x20, &I_fan_speed_1_hover_19x20},
-    [HvacMideaFanPower2] = {&I_fan_speed_2_19x20, &I_fan_speed_2_hover_19x20},
-    [HvacMideaFanPower3] = {&I_fan_speed_3_19x20, &I_fan_speed_3_hover_19x20},
-    [HvacMideaFanPowerAuto] = {&I_fan_speed_auto_19x20, &I_fan_speed_auto_hover_19x20}};
+    [HvacElectraFanPower1] = {&I_fan_speed_1_19x20, &I_fan_speed_1_hover_19x20},
+    [HvacElectraFanPower2] = {&I_fan_speed_2_19x20, &I_fan_speed_2_hover_19x20},
+    [HvacElectraFanPower3] = {&I_fan_speed_3_19x20, &I_fan_speed_3_hover_19x20},
+    [HvacElectraFanPowerAuto] = {&I_fan_speed_auto_19x20, &I_fan_speed_auto_hover_19x20}};
 
 char buffer[4] = {0};
 
@@ -53,11 +53,11 @@ bool ac_remote_load_settings(ACRemoteAppSettings* app_state) {
         if(!flipper_format_read_header(ff, header, &version)) break;
         if(!furi_string_equal(header, "AC Remote") || (version != 1)) break;
         if(!flipper_format_read_uint32(ff, "Mode", &app_state->mode, 1)) break;
-        if(app_state->mode > HvacMideaModeAuto) break;
+        if(app_state->mode > HvacElectraModeAuto) break;
         if(!flipper_format_read_uint32(ff, "Temperature", &app_state->temperature, 1)) break;
-        if(app_state->temperature > HVAC_MIDEA_TEMPERATURE_MAX) break;
+        if(app_state->temperature > HVAC_ELECTRA_TEMPERATURE_MAX) break;
         if(!flipper_format_read_uint32(ff, "Fan", &app_state->fan, 1)) break;
-        if(app_state->fan > HvacMideaFanPowerAuto) break;
+        if(app_state->fan > HvacElectraFanPowerAuto) break;
         if(!flipper_format_read_uint32(ff, "Power", &app_state->power, 1)) break;
         success = true;
     } while(false);
@@ -98,13 +98,13 @@ void ac_remote_scene_universal_common_item_callback_long(void* context, uint32_t
     view_dispatcher_send_custom_event(ac_remote->view_dispatcher, event);
 }
 
-HvacMideaFanPower ac_remote_displayed_fan_power(const ACRemoteAppSettings* app_state) {
+HvacElectraFanPower ac_remote_displayed_fan_power(const ACRemoteAppSettings* app_state) {
     furi_assert(app_state);
 
     switch(app_state->mode) {
-    case HvacMideaModeDry:
-    case HvacMideaModeAuto:
-        return HvacMideaFanPowerAuto;
+    case HvacElectraModeDry:
+    case HvacElectraModeAuto:
+        return HvacElectraFanPowerAuto;
     default:
         return app_state->fan;
     }
@@ -114,7 +114,7 @@ void ac_remote_displayed_temperature(
     const ACRemoteAppSettings* app_state,
     char* buffer,
     size_t buffer_size) {
-    if(app_state->mode == HvacMideaModeFan) {
+    if(app_state->mode == HvacElectraModeFan) {
         snprintf(buffer, buffer_size, "  ");
         return;
     }
@@ -122,15 +122,15 @@ void ac_remote_displayed_temperature(
     snprintf(buffer, buffer_size, "%ld", app_state->temperature);
 }
 
-void ac_remote_scene_midea_on_enter(void* context) {
+void ac_remote_scene_electra_on_enter(void* context) {
     AC_RemoteApp* ac_remote = context;
     ACRemotePanel* ac_remote_panel = ac_remote->ac_remote_panel;
 
     if(!ac_remote_load_settings(&ac_remote->app_state)) {
         ac_remote->app_state.power = 0;
-        ac_remote->app_state.mode = HvacMideaModeCold;
-        ac_remote->app_state.fan = HvacMideaFanPowerAuto;
-        ac_remote->app_state.temperature = HVAC_MIDEA_TEMPERATURE_DEFAULT;
+        ac_remote->app_state.mode = HvacElectraModeCold;
+        ac_remote->app_state.fan = HvacElectraFanPowerAuto;
+        ac_remote->app_state.temperature = HVAC_ELECTRA_TEMPERATURE_DEFAULT;
         ac_remote->app_state.silent_mode = 0;
     }
 
@@ -263,51 +263,51 @@ void ac_remote_scene_midea_on_enter(void* context) {
 void ac_remote_send_settings(const ACRemoteAppSettings* settings) {
     furi_assert(settings);
 
-    HvacMideaPacket settings_packet = hvac_midea_create_packet(HvacMideaPacketSettings);
+    HvacElectraPacket settings_packet = hvac_electra_create_packet(HvacElectraPacketSettings);
     if(!settings->power) {
-        hvac_midea_set_power_off(settings_packet);
+        hvac_electra_set_power_off(settings_packet);
         goto send;
     }
 
-    hvac_midea_set_temperature(settings_packet, settings->temperature);
-    hvac_midea_set_fan_power(settings_packet, settings->fan);
-    hvac_midea_set_mode(settings_packet, settings->mode);
+    hvac_electra_set_temperature(settings_packet, settings->temperature);
+    hvac_electra_set_fan_power(settings_packet, settings->fan);
+    hvac_electra_set_mode(settings_packet, settings->mode);
 
 send:
-    hvac_midea_send(settings_packet);
-    hvac_midea_free_packet(settings_packet);
+    hvac_electra_send(settings_packet);
+    hvac_electra_free_packet(settings_packet);
 }
 
 void ac_remote_send_command(const ACRemoteAppSettings* settings, command_id command) {
     furi_assert(settings);
 
-    HvacMideaPacket command_packet;
+    HvacElectraPacket command_packet;
     if(command == command_swing) {
         // swing command sent in settings packet
-        command_packet = hvac_midea_create_packet(HvacMideaPacketSettings);
-        hvac_midea_set_toggle_swing(command_packet);
+        command_packet = hvac_electra_create_packet(HvacElectraPacketSettings);
+        hvac_electra_set_toggle_swing(command_packet);
         goto send;
     }
 
-    command_packet = hvac_midea_create_packet(HvacMideaPacketCommand);
+    command_packet = hvac_electra_create_packet(HvacElectraPacketCommand);
     switch(command) {
     case command_swing_vertical:
-        hvac_midea_set_command(command_packet, HvacMideaCommandVerticalSwing);
+        hvac_electra_set_command(command_packet, HvacElectraCommandVerticalSwing);
         break;
     case command_turbo:
-        hvac_midea_set_command(command_packet, HvacMideaCommandTurbo);
+        hvac_electra_set_command(command_packet, HvacElectraCommandTurbo);
         break;
     case command_led:
-        hvac_midea_set_command(command_packet, HvacMideaCommandLED);
+        hvac_electra_set_command(command_packet, HvacElectraCommandLED);
         break;
     case command_led_change_info:
-        hvac_midea_set_command(command_packet, HvacMideaCommandLEDChangeInfo);
+        hvac_electra_set_command(command_packet, HvacElectraCommandLEDChangeInfo);
         break;
     case command_clean:
-        hvac_midea_set_command(command_packet, HvacMideaCommandClean);
+        hvac_electra_set_command(command_packet, HvacElectraCommandClean);
         break;
     case command_silent:
-        hvac_midea_set_command(command_packet, HvacMideaCommandSilent);
+        hvac_electra_set_command(command_packet, HvacElectraCommandSilent);
         break;
     default:
         furi_assert(false);
@@ -315,11 +315,11 @@ void ac_remote_send_command(const ACRemoteAppSettings* settings, command_id comm
     }
 
 send:
-    hvac_midea_send(command_packet);
-    hvac_midea_free_packet(command_packet);
+    hvac_electra_send(command_packet);
+    hvac_electra_free_packet(command_packet);
 }
 
-bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
+bool ac_remote_scene_electra_on_event(void* context, SceneManagerEvent event) {
     AC_RemoteApp* ac_remote = context;
     SceneManager* scene_manager = ac_remote->scene_manager;
     ACRemotePanel* ac_remote_panel = ac_remote->ac_remote_panel;
@@ -427,8 +427,8 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
         break;
     case button_mode:
         ac_remote->app_state.mode++;
-        if(ac_remote->app_state.mode > HvacMideaModeAuto) {
-            ac_remote->app_state.mode = HvacMideaModeCold;
+        if(ac_remote->app_state.mode > HvacElectraModeAuto) {
+            ac_remote->app_state.mode = HvacElectraModeCold;
         }
         ac_remote->app_state.silent_mode = 0;
         ac_remote_panel_item_set_icons(
@@ -455,14 +455,14 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
         break;
     case button_fan:
         // do not adjust if in "auto" or "dry" mode
-        if(ac_remote->app_state.mode == HvacMideaModeAuto ||
-           ac_remote->app_state.mode == HvacMideaModeDry) {
+        if(ac_remote->app_state.mode == HvacElectraModeAuto ||
+           ac_remote->app_state.mode == HvacElectraModeDry) {
             return true;
         }
 
         ac_remote->app_state.fan++;
-        if(ac_remote->app_state.fan > HvacMideaFanPowerAuto) {
-            ac_remote->app_state.fan = HvacMideaModeCold;
+        if(ac_remote->app_state.fan > HvacElectraFanPowerAuto) {
+            ac_remote->app_state.fan = HvacElectraModeCold;
         }
 
         ac_remote->app_state.silent_mode = 0; // force reset silent mode
@@ -479,11 +479,11 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
         break;
     case button_temp_up:
         // do not adjust in "fan" mode
-        if(ac_remote->app_state.mode == HvacMideaModeFan) {
+        if(ac_remote->app_state.mode == HvacElectraModeFan) {
             return true;
         }
 
-        if(ac_remote->app_state.temperature < HVAC_MIDEA_TEMPERATURE_MAX) {
+        if(ac_remote->app_state.temperature < HVAC_ELECTRA_TEMPERATURE_MAX) {
             ac_remote->app_state.temperature++;
             snprintf(buffer, sizeof(buffer), "%ld", ac_remote->app_state.temperature);
             ac_remote_panel_label_set_string(ac_remote_panel, label_temperature, buffer);
@@ -496,11 +496,11 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
         break;
     case button_temp_down:
         // do not adjust in "fan" mode
-        if(ac_remote->app_state.mode == HvacMideaModeFan) {
+        if(ac_remote->app_state.mode == HvacElectraModeFan) {
             return true;
         }
 
-        if(ac_remote->app_state.temperature > HVAC_MIDEA_TEMPERATURE_MIN) {
+        if(ac_remote->app_state.temperature > HVAC_ELECTRA_TEMPERATURE_MIN) {
             ac_remote->app_state.temperature--;
             snprintf(buffer, sizeof(buffer), "%ld", ac_remote->app_state.temperature);
             ac_remote_panel_label_set_string(ac_remote_panel, label_temperature, buffer);
@@ -589,7 +589,7 @@ bool ac_remote_scene_midea_on_event(void* context, SceneManagerEvent event) {
     return true;
 }
 
-void ac_remote_scene_midea_on_exit(void* context) {
+void ac_remote_scene_electra_on_exit(void* context) {
     AC_RemoteApp* ac_remote = context;
     ACRemotePanel* ac_remote_panel = ac_remote->ac_remote_panel;
     ac_remote_store_settings(&ac_remote->app_state);
